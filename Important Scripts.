@@ -1,0 +1,231 @@
+Requirements of each report
+
+
+#!/bin/bash
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o xtrace
+
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
+
+GIT_PATH=/opt/odoo/git
+
+for repo_dir in $GIT_PATH/*
+do
+    requirements_file=$repo_dir/requirements.txt
+    if [ -f $requirements_file ]; then
+        pip install -r $requirements_file
+    fi
+done
+
+
+GIT CLONE
+
+
+# -*- coding: utf-8 -*-
+
+import os
+import subprocess
+
+"""
+git config --global credential.helper store
+git fetch origin
+git config --global --unset credential.helper
+rm ~/.git-credentials
+"""
+
+BRANCH = '10.0'
+
+REPOS = [
+    # Algios
+    #'ssh://git@gitlab.algios.com:1822/algios/algios-base.git',
+    #'ssh://git@gitlab.algios.com:1822/algios/algios-saas.git',
+    #'ssh://git@gitlab.algios.com:1822/algios/algios-pos.git',
+    # odoomrp
+    #'https://github.com/algiopensource/odoomrp-utils.git',
+    #'https://github.com/algiopensource/odoomrp-wip.git',
+    # SerpentCS
+    #'https://github.com/algiopensource/SerpentCS_Contributions.git',
+    # OCA
+    'https://github.com/OCA/account-analytic.git',
+    'https://github.com/OCA/account-budgeting.git',
+    'https://github.com/OCA/account-closing.git',
+    'https://github.com/OCA/account-consolidation.git',
+    'https://github.com/OCA/account-financial-reporting.git',
+    'https://github.com/OCA/account-financial-tools.git',
+    'https://github.com/OCA/account-fiscal-rule.git',
+    'https://github.com/OCA/account-invoice-reporting.git',
+    'https://github.com/OCA/account-invoicing.git',
+    'https://github.com/OCA/account-payment.git',
+    'https://github.com/OCA/bank-payment.git',
+    'https://github.com/OCA/bank-statement-import.git',
+    'https://github.com/OCA/bank-statement-reconcile.git',
+    'https://github.com/OCA/business-requirement.git',
+    'https://github.com/OCA/commission.git',
+    'https://github.com/OCA/community-data-files.git',
+    'https://github.com/OCA/connector.git',
+    'https://github.com/OCA/connector-ecommerce.git',
+    'https://github.com/OCA/connector-magento.git',
+    'https://github.com/OCA/connector-telephony.git',
+    'https://github.com/OCA/contract.git',
+    'https://github.com/OCA/crm.git',
+    'https://github.com/OCA/delivery-carrier.git',
+    'https://github.com/OCA/department.git',
+    'https://github.com/OCA/donation.git',
+    'https://github.com/OCA/e-commerce.git',
+    'https://github.com/OCA/event.git',
+    'https://github.com/OCA/geospatial.git',
+    'https://github.com/OCA/hr.git',
+    'https://github.com/OCA/hr-timesheet.git',
+    'https://github.com/OCA/knowledge.git',
+    'https://github.com/OCA/l10n-spain.git',
+    'https://github.com/OCA/management-system.git',
+    'https://github.com/OCA/manufacture.git',
+    'https://github.com/OCA/manufacture-reporting.git',
+    'https://github.com/OCA/margin-analysis.git',
+    'https://github.com/OCA/multi-company.git',
+    'https://github.com/OCA/partner-contact.git',
+    'https://github.com/OCA/pos.git',
+    'https://github.com/OCA/product-attribute.git',
+    'https://github.com/OCA/product-kitting.git',
+    'https://github.com/OCA/product-variant.git',
+    'https://github.com/OCA/project.git',
+    'https://github.com/OCA/project-reporting.git',
+    'https://github.com/OCA/purchase-reporting.git',
+    'https://github.com/OCA/purchase-workflow.git',
+    'https://github.com/OCA/reporting-engine.git',
+    'https://github.com/OCA/report-print-send.git',
+    'https://github.com/OCA/rma.git',
+    'https://github.com/OCA/sale-financial.git',
+    'https://github.com/OCA/sale-reporting.git',
+    'https://github.com/OCA/sale-workflow.git',
+    'https://github.com/OCA/server-tools.git',
+    'https://github.com/OCA/social.git',
+    'https://github.com/OCA/stock-logistics-barcode.git',
+    'https://github.com/OCA/stock-logistics-tracking.git',
+    'https://github.com/OCA/stock-logistics-transport.git',
+    'https://github.com/OCA/stock-logistics-warehouse.git',
+    'https://github.com/OCA/stock-logistics-workflow.git',
+    'https://github.com/OCA/survey.git',
+    'https://github.com/OCA/web.git',
+    'https://github.com/OCA/webkit-tools.git',
+    'https://github.com/OCA/website.git',
+]
+
+def do(command):
+    out = None
+    print '<<<' + ' '.join(command)
+    try:
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+    except (OSError, IOError, TypeError):
+        pass
+    else:
+        out = process.communicate()
+        print '>>>' + out[0]
+    return out
+
+def git_clone(url, path=None, branch=None):
+    params = ['git', 'clone', url]
+    if path != None:
+        params.append(path)
+    if branch != None:
+        params.extend(['-b', branch])
+    return do(params)
+
+def git_fetch(path=None, branch=None, prune=None):
+    params = ['git', 'fetch', 'origin']
+    if prune != None:
+        params.insert(2, '--prune')
+    if path != None:
+        params.insert(1, '--git-dir')
+        params.insert(2, os.path.join(path, '.git'))
+    if branch != None:
+        params.append(branch)
+    return do(params)
+
+def git_pull(path=None, branch=None):
+    params = ['git', 'pull', 'origin']
+    if path != None:
+        params.insert(1, '--git-dir')
+        params.insert(2, os.path.join(path, '.git'))
+    if branch != None:
+        params.append(branch)
+    return do(params)
+
+def git_push(path=None, branch=None):
+    params = ['git', 'push', 'origin']
+    if branch != None:
+        params.insert(2, '-u')
+        params.append(branch)
+    if path != None:
+        params.insert(1, '--git-dir')
+        params.insert(2, os.path.join(path, '.git'))
+    return do(params)
+
+def git_new_branch(branch, from_branch=None, path=None):
+    params = ['git', 'checkout', '-b', branch]
+    if from_branch != None:
+        params.append(from_branch)
+    if path != None:
+        params.insert(1, '--git-dir')
+        params.insert(2, os.path.join(path, '.git'))
+    return do(params)
+
+def git_checkout_remote(branch, path=None):
+    if path == None:
+        path = os.curdir
+    params = ['git', 'checkout', '-t', 'origin/%s' % branch]
+    if path != None:
+        params.insert(1, '--git-dir')
+        params.insert(2, os.path.join(path, '.git'))
+    return do(params)
+
+def main():
+    paths = []
+    with open("/opt/odoo/%s.txt" % BRANCH, "wb") as repofile:
+        for repo in REPOS:
+            path = os.path.join('/opt/odoo/git', repo.split('/')[-1].replace('.git', ''))
+            if not os.path.lexists(path):
+                git_clone(repo, path=path, branch=BRANCH)
+#             if os.path.isdir(path):
+#                 git_pull(path=path, branch='8.0')
+#                 git_new_branch(BRANCH, from_branch='8.0', path=path)
+#                 git_push(path=path, branch=BRANCH)
+#             if os.path.isdir(path):
+#                 git_fetch(path=path, branch='8.0', prune=True)
+#                 git_checkout_remote(BRANCH, path=path)
+            paths.append(path)
+        repofile.write('{paths}\n'.format(paths=','.join(paths)))
+    print paths
+
+if __name__ == "__main__":
+    main()
+
+
+ Download link for files stored as binary fields 
+ 
+ 
+ # -*- coding: utf-8 -*-
+import urllib
+
+r = {'_name': 'base.language.export', 'id': 6}
+vals = {
+    'model': r['_name'],
+    'field': 'data',
+    'id': r['id'],
+    'filename_field': 'name',
+}
+url = '/web/binary/saveas?%s' % urllib.urlencode(vals)
+print (url)
+
+
+
+
